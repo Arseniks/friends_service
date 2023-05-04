@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from django.views.generic import FormView
-from users.forms import CustomUserCreationForm
 
+from users.forms import CustomUserCreationForm
 from users.models import CustomUser
 
 
