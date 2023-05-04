@@ -8,12 +8,17 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
 
+import home.urls
 import users.urls
 
 urlpatterns = [
     path(
         'admin/',
         admin.site.urls,
+    ),
+    path(
+        '',
+        include(home.urls),
     ),
     path(
         'auth/',
