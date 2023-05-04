@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 import django.contrib.auth.views
 from django.urls import path
 
