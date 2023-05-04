@@ -4,13 +4,25 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include
 from django.urls import path
+from django.contrib.auth import urls
+
 from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
+
+import users.urls
 
 urlpatterns = [
     path(
         'admin/',
         admin.site.urls,
+    ),
+    path(
+        'auth/',
+        include(users.urls),
+    ),
+    path(
+        'auth/',
+        include(urls),
     ),
 ]
 
