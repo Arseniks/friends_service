@@ -2,15 +2,17 @@
   <div class="card mb-3 mt-3">
     <div class="card-header">Пользователь: {{ user.username }}</div>
     <div class="card-body">
-      {% with request.resolver_match.view_name as view_name %}
-      {% if view_name == 'users:user_list' %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <input type="hidden" name="recipient" value="{{ user.pk }}">
+      <form action="" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="recipient" value="{{ user.pk }}">
+        {% with request.resolver_match.view_name as view_name %}
+        {% if view_name == 'users:user_list' %}
           <button type="submit" class="btn btn-info mx-sm-3">Добавить в друзья</button>
-        </form>
-      {% endif %}
-      {% endwith %}
+        {% elif view_name == 'users:friend_list' %}
+          <button type="submit" class="btn btn-danger mx-sm-3">Удалить из друзей</button>
+        {% endif %}
+        {% endwith %}
+      </form>
     </div>
     <div class="card-footer text-muted">
     </div>

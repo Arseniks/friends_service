@@ -42,8 +42,8 @@ class UserListView(ListView):
 
         if self.request.user.pk != recipient_pk:
             Pending.objects.get_or_create(
-                sender=CustomUser.objects.filter(pk=self.request.user.pk)[0],
-                recipient=CustomUser.objects.filter(pk=recipient_pk)[0],
+                sender=CustomUser.objects.get(pk=self.request.user.pk),
+                recipient=CustomUser.objects.get(pk=recipient_pk),
             )
 
         return redirect('users:user_list')
@@ -64,10 +64,10 @@ class PendingListView(ListView):
     def post(self, request, *args, **kwargs):
         sender_pk = int(request.POST.getlist('sender')[0])
 
-        Pending.objects.filter(
-            sender=CustomUser.objects.filter(pk=sender_pk)[0],
-            recipient=CustomUser.objects.filter(pk=self.request.user.pk)[0],
-        )[0].delete()
+        Pending.objects.get(
+            sender=CustomUser.objects.get(pk=sender_pk),
+            recipient=CustomUser.objects.get(pk=self.request.user.pk),
+        ).delete()
 
         if request.POST.getlist('submit') != ['reject']:
             Relationship.objects.get_or_create(
@@ -90,6 +90,19 @@ class FriendsListView(ListView):
     model = Relationship
     template_name = 'users/friend_list.html'
     context_object_name = 'users'
+
+    def post(self, request, *args, **kwargs):
+        recipient_pk = int(request.POST.getlist('recipient')[0])
+        Relationship.objects.get(
+            from_person__pk=self.request.user.pk,
+            to_person__pk=recipient_pk,
+        ).delete()
+        Relationship.objects.get(
+            from_person__pk=recipient_pk,
+            to_person__pk=self.request.user.pk,
+        ).delete()
+
+        return redirect('users:friend_list')
 
     def get_queryset(self):
         ids = Relationship.objects.filter(
