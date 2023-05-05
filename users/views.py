@@ -6,6 +6,7 @@ from django.views.generic import ListView
 from users.forms import CustomUserCreationForm
 from users.models import CustomUser
 from users.models import Pending
+from users.models import Relationship
 
 
 class Register(FormView):
@@ -59,3 +60,44 @@ class PendingListView(ListView):
         ) | Pending.objects.filter(
             recipient__pk=self.request.user.pk,
         )
+
+    def post(self, request, *args, **kwargs):
+        sender_pk = int(request.POST.getlist('sender')[0])
+
+        Pending.objects.filter(
+            sender=CustomUser.objects.filter(pk=sender_pk)[0],
+            recipient=CustomUser.objects.filter(pk=self.request.user.pk)[0],
+        )[0].delete()
+
+        if request.POST.getlist('submit') != ['reject']:
+            Relationship.objects.get_or_create(
+                from_person=CustomUser.objects.filter(pk=self.request.user.pk)[
+                    0
+                ],
+                to_person=CustomUser.objects.filter(pk=sender_pk)[0],
+            )
+            Relationship.objects.get_or_create(
+                from_person=CustomUser.objects.filter(pk=sender_pk)[0],
+                to_person=CustomUser.objects.filter(pk=self.request.user.pk)[
+                    0
+                ],
+            )
+
+        return redirect('users:pending_list')
+
+
+class FriendsListView(ListView):
+    model = Relationship
+    template_name = 'users/friend_list.html'
+    context_object_name = 'users'
+
+    def get_queryset(self):
+        ids = Relationship.objects.filter(
+            from_person__pk=self.request.user.pk
+        ).values_list(
+            Relationship.to_person.field.name,
+        )
+        if ids:
+            return CustomUser.objects.filter(
+                pk__in=ids,
+            )

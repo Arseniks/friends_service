@@ -38,4 +38,9 @@ urlpatterns = [
         users.views.PendingListView.as_view(),
         name='pending_list',
     ),
+    django.urls.path(
+        'friend_list/',
+        users.views.FriendsListView.as_view(),
+        name='friend_list',
+    ),
 ]
