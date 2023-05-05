@@ -1,10 +1,7 @@
-from itertools import chain
-
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView
 from django.views.generic import ListView
-from django.views.generic import TemplateView
 
 from users.forms import CustomUserCreationForm
 from users.models import CustomUser
