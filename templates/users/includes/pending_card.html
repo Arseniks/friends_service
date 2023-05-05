@@ -1,0 +1,14 @@
+<div class="container">
+  <div class="card mb-3 mt-3">
+    <div class="card-header">Заявка: {{ pending }}</div>
+    <div class="card-body">
+      <form action="" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="recipient" value="{{ user.pk }}">
+        <button type="submit" class="btn btn-info mx-sm-3">Принять</button>
+      </form>
+    </div>
+    <div class="card-footer text-muted">
+    </div>
+  </div>
+</div>

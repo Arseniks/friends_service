@@ -10,16 +10,16 @@ class CustomUser(AbstractUser):
     )
 
 
-class Pending:
-    sender = models.OneToOneField(
+class Pending(models.Model):
+    sender = models.ForeignKey(
         CustomUser,
-        verbose_name='отправитель заявки',
+        related_name='sender',
         help_text='Пользователь, отправивший заявку',
         on_delete=models.CASCADE,
     )
-    recipient = models.OneToOneField(
+    recipient = models.ForeignKey(
         CustomUser,
-        verbose_name='Получатель заявки',
+        related_name='recipient',
         help_text='Пользователь, получивший заявку',
         on_delete=models.CASCADE,
     )

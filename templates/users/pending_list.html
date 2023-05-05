@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Список ваших заявок
+{% endblock %}
+
+{% block content %}
+  <h1 class="text-center">Отправленные заявки</h1>
+  <br>
+  {% for pending in pendings %}
+    {% if pending.sender.pk == request.user.pk %}
+      {% include 'users/includes/pending_card.html' %}
+    {% endif %}
+  {% endfor %}
+  <h1 class="text-center">Полученные заявки заявки</h1>
+  <br>
+  {% for pending in pendings %}
+    {% if pending.recipient.pk == request.user.pk %}
+      {% include 'users/includes/pending_card.html' %}
+    {% endif %}
+  {% endfor %}
+{% endblock content %}

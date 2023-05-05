@@ -28,4 +28,14 @@ urlpatterns = [
         ),
         name='signup',
     ),
+    django.urls.path(
+        'user_list/',
+        users.views.UserListView.as_view(),
+        name='user_list',
+    ),
+    django.urls.path(
+        'pending_list/',
+        users.views.PendingListView.as_view(),
+        name='pending_list',
+    ),
 ]
