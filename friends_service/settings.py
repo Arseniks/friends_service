@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'users.apps.UsersConfig',
     'debug_toolbar',
-    'drf_spectacular',
 ]
 
 
