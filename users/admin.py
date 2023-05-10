@@ -13,4 +13,3 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.CustomUser, CustomUserAdmin)
-admin.site.register(models.Pending)

@@ -1,116 +1,68 @@
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
-from django.views.generic import FormView
-from django.views.generic import ListView
+from rest_framework import viewsets
+from rest_framework.generics import ListCreateAPIView
 
-from users.forms import CustomUserCreationForm
 from users.models import CustomUser
-from users.models import Pending
 from users.models import Relationship
+from users.serializers import FriendsListDeleteSerializer
+from users.serializers import FriendsListGetSerializer
+from users.serializers import PendingListDeleteSerializer
+from users.serializers import PendingListGetSerializer
+from users.serializers import PendingListPutSerializer
+from users.serializers import UserListGetSerializer
+from users.serializers import UserListPostSerializer
 
 
-class Register(FormView):
-    template_name = 'users/signup.html'
-    model = CustomUser
-    form_class = CustomUserCreationForm
-    success_url = reverse_lazy('users:login')
-
-    def form_valid(self, form):
-        user = form.save(commit=False)
-
-        user.is_active = True
-        user.save()
-
-        return super().form_valid(form)
-
-
-class UserListView(ListView):
-    model = CustomUser
-    template_name = 'users/user_list.html'
-    context_object_name = 'users'
-
-    def get_queryset(self):
-        ids = Pending.objects.filter(
-            sender__pk=self.request.user.pk,
-        ).values_list(
-            f'{Pending.recipient.field.name}__{CustomUser.id.field.name}',
-        )
-        return CustomUser.objects.exclude(pk__in=ids)
-
-    def post(self, request, *args, **kwargs):
-        recipient_pk = int(request.POST.getlist('recipient')[0])
-
-        if self.request.user.pk != recipient_pk:
-            Pending.objects.get_or_create(
-                sender=CustomUser.objects.get(pk=self.request.user.pk),
-                recipient=CustomUser.objects.get(pk=recipient_pk),
-            )
-
-        return redirect('users:user_list')
-
-
-class PendingListView(ListView):
-    model = Pending
-    template_name = 'users/pending_list.html'
-    context_object_name = 'pendings'
-
-    def get_queryset(self):
-        return Pending.objects.filter(
-            sender__pk=self.request.user.pk,
-        ) | Pending.objects.filter(
-            recipient__pk=self.request.user.pk,
-        )
-
-    def post(self, request, *args, **kwargs):
-        sender_pk = int(request.POST.getlist('sender')[0])
-
-        Pending.objects.get(
-            sender=CustomUser.objects.get(pk=sender_pk),
-            recipient=CustomUser.objects.get(pk=self.request.user.pk),
-        ).delete()
-
-        if request.POST.getlist('submit') != ['reject']:
-            Relationship.objects.get_or_create(
-                from_person=CustomUser.objects.filter(pk=self.request.user.pk)[
-                    0
-                ],
-                to_person=CustomUser.objects.filter(pk=sender_pk)[0],
-            )
-            Relationship.objects.get_or_create(
-                from_person=CustomUser.objects.filter(pk=sender_pk)[0],
-                to_person=CustomUser.objects.filter(pk=self.request.user.pk)[
-                    0
-                ],
-            )
-
-        return redirect('users:pending_list')
-
-
-class FriendsListView(ListView):
-    model = Relationship
-    template_name = 'users/friend_list.html'
-    context_object_name = 'users'
-
-    def post(self, request, *args, **kwargs):
-        recipient_pk = int(request.POST.getlist('recipient')[0])
-        Relationship.objects.get(
-            from_person__pk=self.request.user.pk,
-            to_person__pk=recipient_pk,
-        ).delete()
-        Relationship.objects.get(
-            from_person__pk=recipient_pk,
-            to_person__pk=self.request.user.pk,
-        ).delete()
-
-        return redirect('users:friend_list')
+class UserListAPIView(ListCreateAPIView):
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserListGetSerializer
+        else:
+            return UserListPostSerializer
 
     def get_queryset(self):
         ids = Relationship.objects.filter(
-            from_person__pk=self.request.user.pk
+            from_person__pk=self.request.user.pk,
+            status__in=('дружба', 'исходящая заявка'),
         ).values_list(
-            Relationship.to_person.field.name,
+            f'{Relationship.to_person.field.name}__{CustomUser.id.field.name}',
         )
-        if ids:
-            return CustomUser.objects.filter(
-                pk__in=ids,
-            )
+        return CustomUser.objects.exclude(pk__in=ids).exclude(
+            id=self.request.user.pk
+        )
+
+
+class PendingListAPIView(viewsets.ModelViewSet):
+    http_method_names = ['get', 'delete', 'put']
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return PendingListGetSerializer
+        elif self.request.method == 'PUT':
+            return PendingListPutSerializer
+        else:
+            return PendingListDeleteSerializer
+
+    def get_queryset(self):
+        return Relationship.objects.filter(
+            from_person__pk=self.request.user.pk,
+            status='исходящая заявка',
+        ) | Relationship.objects.filter(
+            to_person__pk=self.request.user.pk,
+            status='исходящая заявка',
+        )
+
+
+class FriendsListAPIView(viewsets.ModelViewSet):
+    http_method_names = ['get', 'delete']
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return FriendsListGetSerializer
+        else:
+            return FriendsListDeleteSerializer
+
+    def get_queryset(self):
+        return Relationship.objects.filter(
+            to_person__pk=self.request.user.pk,
+            status='дружба',
+        )

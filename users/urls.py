@@ -6,41 +6,34 @@ import users.views
 app_name = 'users'
 
 urlpatterns = [
-    path(
-        'login/',
-        django.contrib.auth.views.LoginView.as_view(
-            template_name='users/login.html',
-            redirect_authenticated_user=True,
-        ),
-        name='login',
-    ),
-    path(
-        'logout/',
-        django.contrib.auth.views.LogoutView.as_view(
-            template_name='users/logout.html',
-        ),
-        name='logout',
-    ),
-    path(
-        'signup/',
-        users.views.Register.as_view(
-            template_name='users/signup.html',
-        ),
-        name='signup',
-    ),
     django.urls.path(
-        'user_list/',
-        users.views.UserListView.as_view(),
+        'api/v1/user_list/',
+        users.views.UserListAPIView.as_view(),
         name='user_list',
     ),
     django.urls.path(
-        'pending_list/',
-        users.views.PendingListView.as_view(),
+        'api/v1/pending_list/',
+        users.views.PendingListAPIView.as_view({'get': 'list'}),
         name='pending_list',
     ),
     django.urls.path(
-        'friend_list/',
-        users.views.FriendsListView.as_view(),
+        'api/v1/pending_list/delete/<int:pk>/',
+        users.views.PendingListAPIView.as_view({'delete': 'destroy'}),
+        name='pending_list_delete',
+    ),
+    django.urls.path(
+        'api/v1/pending_list/accept/<int:pk>/',
+        users.views.PendingListAPIView.as_view({'put': 'update'}),
+        name='pending_list_accept',
+    ),
+    django.urls.path(
+        'api/v1/friend_list/',
+        users.views.FriendsListAPIView.as_view({'get': 'list'}),
         name='friend_list',
+    ),
+    django.urls.path(
+        'api/v1/friend_list/delete/<int:pk>/',
+        users.views.FriendsListAPIView.as_view({'delete': 'destroy'}),
+        name='friend_list_delete',
     ),
 ]
